@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+# vim: set ft=python:
+""" If Jira ticket is referenced in Commit message:
+* Post message to Jira as comment
+* Add links to Jira Issue in git commit
+"""
+import json
+import pathlib
+import re
+import sys
+import os
+
+import requests
+
+GIT_MSG_FILEPATH = sys.argv[1]
+
+# requires python 3.6+, otherwise convert posixpath object to str
+conf_file = pathlib.Path(__file__).resolve().parent / "config.json"
+with open(conf_file, "r") as c:
+    conf = json.load(c)
+
+USER = conf.get("user", os.environ.get("USER"))
+PW = conf.get("password")
+URL = conf.get("url")
+BASE = conf.get("base")
+PROJECT = conf.get("project")
+if None in [USER, PW, URL, BASE, PROJECT]:
+    print("Missing configuration values:\n{}", json.dumps(conf, indent=2))
+
+_regex = r"%s-[0-9]{1,}" % PROJECT
+
+jira_comment = ""
+with open(GIT_MSG_FILEPATH, "r") as f:
+    for line in f:
+        if not line.startswith("#"):
+            jira_comment += line
+
+jira_comment += "\ncomment added by Jira API Git commit-msg Hook"
+
+tickets = re.findall(_regex, jira_comment)
+jira_comment = re.sub(_regex, "", jira_comment).strip()
+# import pdb
+# pdb.set_trace()
+if tickets:
+    with open(GIT_MSG_FILEPATH, "a") as commit_msg:
+        commit_msg.write("\n")
+        commit_msg.write("Links to related Jira tickets:\n")
+        for ticket in tickets:
+            commit_msg.write("{url}/browse/{ticket}\n".format(url=URL, ticket=ticket))
+
+    for ticket in tickets:
+        path = "{url}/{base}/issue/{t}/comment".format(url=URL, base=BASE, t=ticket)
+        body = {"body": jira_comment}
+        auth = requests.auth.HTTPBasicAuth(USER, PW)
+        response = requests.post(path, auth=auth, json=body)
+        print(ticket, response.status_code, response)
+else:
+    print("No Jira tickets found.")
