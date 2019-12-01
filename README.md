@@ -30,3 +30,8 @@ Edit this file and add
 ## Install
 
 To install a hook, copy the file and config to `.git/hooks/` directory in your repo.
+
+
+## Samples
+
+Files ending in `.sample` are the default git hooks that are in any newly created git repo as of 12/1/2019.
