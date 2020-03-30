@@ -2,6 +2,6 @@
   "user": "YOUR_USER_ID",
   "password": "YOUR_PASSWORD",
   "url": "https://JIRA_SERVER_BASE_URL",
-  "base": "/rest/api/2",
+  "base": "rest/api/latest",
   "project": "EN"
 }
