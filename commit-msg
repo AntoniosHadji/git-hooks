@@ -26,6 +26,7 @@ BASE = conf.get("base")
 PROJECT = conf.get("project")
 if None in [USER, PW, URL, BASE, PROJECT]:
     print("Missing configuration values:\n{}", json.dumps(conf, indent=2))
+    exit(1)
 
 _regex = r"%s-[0-9]{1,}" % PROJECT
 
@@ -53,6 +54,6 @@ if tickets:
         body = {"body": jira_comment}
         auth = requests.auth.HTTPBasicAuth(USER, PW)
         response = requests.post(path, auth=auth, json=body)
-        print(ticket, response.status_code, response)
+        print(ticket, response.status_code, response.reason)
 else:
     print("No Jira tickets found.")
