@@ -5,10 +5,10 @@
 * Add links to Jira Issue in git commit
 """
 import json
+import os
 import pathlib
 import re
 import sys
-import os
 
 import requests
 
@@ -53,7 +53,11 @@ if tickets:
         path = "{url}/{base}/issue/{t}/comment".format(url=URL, base=BASE, t=ticket)
         body = {"body": jira_comment}
         auth = requests.auth.HTTPBasicAuth(USER, PW)
-        response = requests.post(path, auth=auth, json=body)
+        try:
+            response = requests.post(path, auth=auth, json=body)
+        except Exception as err:
+            print(type(err), err)
+
         print(ticket, response.status_code, response.reason)
 else:
     print("No Jira tickets found.")
